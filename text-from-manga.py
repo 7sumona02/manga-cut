@@ -6,6 +6,7 @@ from skimage.feature import canny
 from skimage.morphology import dilation
 from scipy import ndimage as ndi
 from skimage.measure import label, regionprops
+import easyocr
 
 # Read the image
 im = imageio.imread('yubi.jpg')
@@ -62,6 +63,21 @@ for i, bbox in reversed(list(enumerate(panels))):
     if area < 0.01 * im.shape[0] * im.shape[1]:
         del panels[i]
 
+# Initialize EasyOCR Reader with desired languages (e.g., English)
+reader = easyocr.Reader(['en'])
+
+# Extract text from each segment using EasyOCR
+extracted_texts = []
+for bbox in panels:
+    # Create a segment image from the bounding box coordinates
+    segment_image = Image.fromarray(im[bbox[0]:bbox[2], bbox[1]:bbox[3]])
+    
+    # Use EasyOCR to extract text from the segment image
+    text_results = reader.readtext(np.array(segment_image))
+    
+    # Concatenate the extracted texts into a single string for each segment
+    extracted_texts.append(" ".join([text for (_, text, _) in text_results]))
+
 # Function to check if bounding boxes are aligned along an axis
 def are_bboxes_aligned(a, b, axis):
     return (
@@ -106,8 +122,8 @@ def flatten(l):
 # Sort clusters top to bottom and right to left for numbering
 sorted_clusters = sorted(flatten(clusters), key=lambda bbox: (bbox[0], -bbox[1]))
 
-# Draw numbers on the image based on sorted bounding boxes
-for i, bbox in enumerate(sorted_clusters, start=1):
+# Draw numbers on the image based on sorted bounding boxes and print extracted texts segment-wise
+for i, (bbox, text) in enumerate(zip(sorted_clusters, extracted_texts), start=1):
     # Calculate text width using textlength method only for width.
     w = draw.textlength(str(i), font=font)
     
@@ -118,9 +134,12 @@ for i, bbox in enumerate(sorted_clusters, start=1):
     x = (bbox[1] + bbox[3] - w) / 2  # Center horizontally in the bounding box (x-coordinates)
     y = (bbox[0] + bbox[2] - h) / 2  # Center vertically in the bounding box (y-coordinates)
 
-    # Draw the text on the image with a specified color (gold)
+    # Draw the number on the image with a specified color (gold)
     draw.text((x, y), str(i), fill=(255, 215, 0), font=font)
 
-# Save or show the modified image with numbered labels
+    # Print extracted text below each number on the console or log it somewhere else.
+    print(f"{text}")
+
+# Save or show the modified image with numbered labels and extracted texts printed out.
 img.save("output_image.png")
 img.show()
