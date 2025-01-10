@@ -8,7 +8,7 @@ from scipy import ndimage as ndi
 from skimage.measure import label, regionprops
 
 # Read the image
-im = imageio.imread('yubi.jpg')
+im = imageio.imread('i1.jpg')
 
 # Convert to grayscale
 grayscale = rgb2gray(im)

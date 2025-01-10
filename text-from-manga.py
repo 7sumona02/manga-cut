@@ -9,7 +9,7 @@ from skimage.measure import label, regionprops
 import easyocr
 
 # Read the image
-im = imageio.imread('yubi.jpg')
+im = imageio.imread('i1.jpg')
 
 # Convert to grayscale
 grayscale = rgb2gray(im)
